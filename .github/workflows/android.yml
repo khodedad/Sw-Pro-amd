@@ -53,6 +53,12 @@ jobs:
           java-version: 17
           distribution: temurin
 
+      # ⭐ مهم‌ترین بخش: اجبار Gradle به نسخهٔ 8.13
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 8.13
+
       - name: Set environmental variables
         shell: bash
         env:
@@ -60,9 +66,6 @@ jobs:
         if: ${{ env.JSON_CONTENT != '' }}
         run: |
           printf 'GOOGLE_SERVICES_JSON<<EOF\n%s\nEOF\n' "$JSON_CONTENT" >> $GITHUB_ENV
-
-      - name: Setup Gradle
-        uses: gradle/actions/setup-gradle@v3
 
       - name: Build Release APKs
         env:
@@ -73,6 +76,7 @@ jobs:
         id: set_sha
         run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
+      # ⭐ Rename سه خروجی ABI
       - name: Rename APKs
         run: |
           mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk \
@@ -84,6 +88,7 @@ jobs:
           mv app/build/outputs/apk/release/app-universal-release.apk \
              app/build/outputs/apk/release/app-universal-${{ steps.set_sha.outputs.short_sha }}.apk
 
+      # ⭐ Upload سه آرتیفکت جداگانه
       - name: Upload APK v7a
         uses: actions/upload-artifact@v4
         with:
@@ -109,6 +114,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # ⭐ Download سه آرتیفکت جداگانه
       - name: Download v7a
         uses: actions/download-artifact@v4
         with:
@@ -147,6 +153,7 @@ jobs:
           path: bot_session.session
           key: telegram-session-${{ runner.os }}-bot_session
 
+      # ⭐ ارسال سه فایل به تلگرام
       - name: Send APKs to Telegram
         env:
           API_ID: ${{ secrets.TELEGRAM_API_ID }}
