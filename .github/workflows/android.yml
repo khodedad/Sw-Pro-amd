@@ -53,19 +53,16 @@ jobs:
           java-version: 17
           distribution: temurin
 
-      # ⭐ مهم‌ترین بخش: اجبار Gradle به نسخهٔ 8.13
+      # ⭐ اصلاح کامل: ست کردن GOOGLE_SERVICES_JSON
+      - name: Export GOOGLE_SERVICES_JSON
+        run: |
+          echo "GOOGLE_SERVICES_JSON=${{ secrets.GOOGLE_SERVICES_JSON }}" >> $GITHUB_ENV
+
+      # ⭐ اجبار Gradle به نسخهٔ سازگار با Sketchware Pro
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
         with:
           gradle-version: 8.13
-
-      - name: Set environmental variables
-        shell: bash
-        env:
-          JSON_CONTENT: ${{ secrets.GOOGLE_SERVICES_JSON }}
-        if: ${{ env.JSON_CONTENT != '' }}
-        run: |
-          printf 'GOOGLE_SERVICES_JSON<<EOF\n%s\nEOF\n' "$JSON_CONTENT" >> $GITHUB_ENV
 
       - name: Build Release APKs
         env:
