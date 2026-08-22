@@ -29,16 +29,14 @@ jobs:
           python-version: '3.x'
 
       - name: Install Dependencies
-        run: |
-          pip install requests
+        run: pip install requests
 
       - name: Send a message to Telegram
         env:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TOPIC_ID: ${{ secrets.TELEGRAM_TOPIC_ID }}
-        run: |
-          python ./.github/workflows/notify_telegram.py
+        run: python ./.github/workflows/notify_telegram.py
         continue-on-error: true
 
   build:
@@ -66,7 +64,7 @@ jobs:
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v3
 
-      - name: Build Release APK
+      - name: Build Release APKs
         env:
           SKETCHUB_API_KEY: ${{ secrets.SKETCHUB_API_KEY }}
         run: gradle assembleRelease
@@ -75,16 +73,34 @@ jobs:
         id: set_sha
         run: echo "short_sha=${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
 
-      - name: Rename APK with commit hash
+      - name: Rename APKs
         run: |
-          mv app/build/outputs/apk/release/app-release.apk \
-             app/build/outputs/apk/release/app-release-${{ steps.set_sha.outputs.short_sha }}.apk
+          mv app/build/outputs/apk/release/app-armeabi-v7a-release.apk \
+             app/build/outputs/apk/release/app-v7a-${{ steps.set_sha.outputs.short_sha }}.apk
 
-      - name: Upload Release APK
+          mv app/build/outputs/apk/release/app-arm64-v8a-release.apk \
+             app/build/outputs/apk/release/app-v8a-${{ steps.set_sha.outputs.short_sha }}.apk
+
+          mv app/build/outputs/apk/release/app-universal-release.apk \
+             app/build/outputs/apk/release/app-universal-${{ steps.set_sha.outputs.short_sha }}.apk
+
+      - name: Upload APK v7a
         uses: actions/upload-artifact@v4
         with:
-          name: apk-release-${{ steps.set_sha.outputs.short_sha }}
-          path: app/build/outputs/apk/release/app-release-${{ steps.set_sha.outputs.short_sha }}.apk
+          name: apk-v7a-${{ steps.set_sha.outputs.short_sha }}
+          path: app/build/outputs/apk/release/app-v7a-${{ steps.set_sha.outputs.short_sha }}.apk
+
+      - name: Upload APK v8a
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-v8a-${{ steps.set_sha.outputs.short_sha }}
+          path: app/build/outputs/apk/release/app-v8a-${{ steps.set_sha.outputs.short_sha }}.apk
+
+      - name: Upload APK universal
+        uses: actions/upload-artifact@v4
+        with:
+          name: apk-universal-${{ steps.set_sha.outputs.short_sha }}
+          path: app/build/outputs/apk/release/app-universal-${{ steps.set_sha.outputs.short_sha }}.apk
 
   aggregateAndSend:
     name: Send APKs to Telegram
@@ -93,11 +109,23 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Download Artifacts
+      - name: Download v7a
         uses: actions/download-artifact@v4
         with:
-          name: apk-release-${{ needs.build.outputs.short_sha }}
-          path: ./downloaded-artifact
+          name: apk-v7a-${{ needs.build.outputs.short_sha }}
+          path: ./downloaded-artifact/v7a
+
+      - name: Download v8a
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-v8a-${{ needs.build.outputs.short_sha }}
+          path: ./downloaded-artifact/v8a
+
+      - name: Download universal
+        uses: actions/download-artifact@v4
+        with:
+          name: apk-universal-${{ needs.build.outputs.short_sha }}
+          path: ./downloaded-artifact/universal
 
       - name: Set up Python 3
         uses: actions/setup-python@v5
@@ -105,8 +133,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Dependencies
-        run: |
-          pip install telethon
+        run: pip install telethon
 
       - name: Get Git Commit Info
         run: |
@@ -127,9 +154,10 @@ jobs:
           BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
           CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
           TOPIC_ID: ${{ secrets.TELEGRAM_TOPIC_ID }}
-          APK_PATH: ./downloaded-artifact/app-release-${{ needs.build.outputs.short_sha }}.apk
-        run: |
-          python ./.github/workflows/deploy_artifacts.py
+          APK_V7A: ./downloaded-artifact/v7a/app-v7a-${{ needs.build.outputs.short_sha }}.apk
+          APK_V8A: ./downloaded-artifact/v8a/app-v8a-${{ needs.build.outputs.short_sha }}.apk
+          APK_UNI: ./downloaded-artifact/universal/app-universal-${{ needs.build.outputs.short_sha }}.apk
+        run: python ./.github/workflows/deploy_artifacts.py
         continue-on-error: true
 
   updateAppData:
@@ -146,8 +174,7 @@ jobs:
           python-version: '3.x'
 
       - name: Install Dependencies
-        run: |
-          pip install requests
+        run: pip install requests
 
       - name: Run Update App Script
         run: python .github/workflows/update_app_data.py
@@ -163,4 +190,3 @@ jobs:
           git commit -m "feat: Update app about screen data"
           git push
         continue-on-error: true
-      
