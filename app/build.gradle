@@ -27,7 +27,6 @@ android {
         }
     }
 
-    // ⭐ ساخت خروجی‌های جداگانه برای ABIها
     splits {
         abi {
             enable true
@@ -137,14 +136,18 @@ dependencies {
 
 tasks.register('createMockGoogleServices') {
     doLast {
-        if (secrets != null) {
-            new File("$projectDir/google-services.json").text = secrets
+        def releaseFile = file("src/release/google-services.json")
+        def debugFile = file("src/debug/google-services.json")
+
+        if (secrets != null && secrets.trim()) {
+            releaseFile.parentFile.mkdirs()
+            releaseFile.text = secrets
             return
         }
-        def mockFile = file("src/debug/google-services.json")
-        if (!mockFile.exists()) {
-            mockFile.parentFile.mkdirs()
-            def mockContent = """{
+
+        if (!releaseFile.exists()) {
+            releaseFile.parentFile.mkdirs()
+            releaseFile.text = """{
   "project_info": {
     "project_number": "123456789000",
     "firebase_url": "https://mock-project-default-rtdb.firebaseio.com",
@@ -174,7 +177,11 @@ tasks.register('createMockGoogleServices') {
   ],
   "configuration_version": "1"
 }"""
-            mockFile.text = mockContent
+        }
+
+        if (!debugFile.exists()) {
+            debugFile.parentFile.mkdirs()
+            debugFile.text = releaseFile.text
         }
     }
 }
