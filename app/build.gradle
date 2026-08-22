@@ -14,15 +14,27 @@ android {
     defaultConfig {
         applicationId = "pro.sketchware"
         namespace = "pro.sketchware"
-        //noinspection ExpiredTargetSdkVersion since we don't target getting Sketchware Pro on Google Play.
         targetSdk = 28
         minSdk = 26
         versionCode = 150
         versionName = "v7.0.0"
 
         buildConfigField("String", "GIT_HASH", "\"${gitCommitHash}\"")
-
         buildConfigField("String", "SKETCHUB_API_KEY", "\"${System.getenv("SKETCHUB_API_KEY")}\"")
+
+        ndk {
+            abiFilters "armeabi-v7a", "arm64-v8a"
+        }
+    }
+
+    // ⭐ ساخت خروجی‌های جداگانه برای ABIها
+    splits {
+        abi {
+            enable true
+            reset()
+            include "armeabi-v7a", "arm64-v8a"
+            universalApk true
+        }
     }
 
     buildTypes {
@@ -80,15 +92,14 @@ dependencies {
     implementation fileTree(dir: "libs", include: ["*.jar", "*.aar"])
 
     implementation libs.bundles.ui
-
     implementation libs.bundles.image
 
     implementation platform(libs.sora.editor)
     implementation libs.bundles.editor.and.lang
 
     implementation libs.bundles.coil
-
     implementation libs.bundles.bundletool
+
     implementation(libs.sdklib) {
         exclude group: "com.intellij", module: "annotations"
     }
@@ -100,7 +111,6 @@ dependencies {
     implementation libs.scpkix.jdk15on
 
     implementation libs.markwon
-
     implementation libs.bundles.networking
 
     implementation libs.ecj
