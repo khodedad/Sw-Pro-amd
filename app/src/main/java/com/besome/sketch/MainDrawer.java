@@ -6,7 +6,6 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.Intent;
-import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -14,19 +13,16 @@ import android.view.ViewGroup;
 import androidx.annotation.IdRes;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.annotation.StringRes;
 import androidx.core.view.WindowInsetsCompat;
 
 import com.besome.sketch.help.ProgramInfoActivity;
 import com.besome.sketch.tools.NewKeyStoreActivity;
 import com.google.android.material.navigation.NavigationView;
 
-import a.a.a.mB;
 import dev.chrisbanes.insetter.Insetter;
 import dev.chrisbanes.insetter.Side;
 import mod.hilal.saif.activities.tools.AppSettings;
 import pro.sketchware.R;
-import pro.sketchware.activities.about.AboutActivity;
 import pro.sketchware.utility.UI;
 
 public class MainDrawer extends NavigationView {
@@ -57,45 +53,14 @@ public class MainDrawer extends NavigationView {
         addHeaderView(headerView);
         inflateMenu(R.menu.main_drawer_menu);
         setNavigationItemSelectedListener(item -> {
-            initializeSocialLinks(item.getItemId());
             initializeDrawerItems(item.getItemId());
-
-            // Return false to prevent selection
             return false;
         });
     }
 
-    private void initializeSocialLinks(@IdRes int id) {
-        if (!mB.a()) {
-            @StringRes int url = -1;
-            if (id == R.id.social_discord) {
-                url = R.string.link_discord_invite;
-            } else if (id == R.id.social_telegram) {
-                url = R.string.link_telegram_invite;
-            } else if (id == R.id.social_github) {
-                url = R.string.link_github_url;
-            } else if (id == R.id.app_sw_assist) {
-                url = R.string.link_sw_assist;
-            }
-
-            if (url != -1) {
-                openUrl(getContext().getString(url));
-            }
-        }
-    }
-
     private void initializeDrawerItems(@IdRes int id) {
         Activity activity = unwrap(getContext());
-        if (id == R.id.about_team) {
-            Intent intent = new Intent(activity, AboutActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            activity.startActivity(intent);
-        } else if (id == R.id.changelog) {
-            Intent intent = new Intent(activity, AboutActivity.class);
-            intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
-            intent.putExtra("select", "changelog");
-            activity.startActivity(intent);
-        } else if (id == R.id.program_info) {
+        if (id == R.id.program_info) {
             Intent intent = new Intent(activity, ProgramInfoActivity.class);
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             activity.startActivityForResult(intent, 105);
@@ -108,12 +73,6 @@ public class MainDrawer extends NavigationView {
             intent.setFlags(Intent.FLAG_ACTIVITY_SINGLE_TOP);
             activity.startActivity(intent);
         }
-    }
-
-    private void openUrl(String url) {
-        Activity activity = unwrap(getContext());
-        Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
-        activity.startActivity(intent);
     }
 
     private Activity unwrap(Context context) {
