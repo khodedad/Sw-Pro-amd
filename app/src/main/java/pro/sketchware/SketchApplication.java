@@ -25,15 +25,22 @@ public class SketchApplication extends Application {
         Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(@NonNull Thread thread, @NonNull Throwable throwable) {
-                Intent intent = new Intent(getApplicationContext(), CollectErrorActivity.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
-                intent.putExtra("error", Log.getStackTraceString(throwable));
-                startActivity(intent);
-                Process.killProcess(Process.myPid());
-                System.exit(1);
+                Log.e("SketchApplication", "Uncaught Exception", throwable);
+                try {
+                    Intent intent = new Intent(getApplicationContext(), CollectErrorActivity.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TASK);
+                    intent.putExtra("error", Log.getStackTraceString(throwable));
+                    startActivity(intent);
+                } catch (Exception e) {
+                    Log.e("SketchApplication", "Failed to start error activity", e);
+                }
             }
         });
         super.onCreate();
-        ThemeManager.applyTheme(this, ThemeManager.getCurrentTheme(this));
+        try {
+            ThemeManager.applyTheme(this, ThemeManager.getCurrentTheme(this));
+        } catch (Exception e) {
+            Log.e("SketchApplication", "Failed to apply theme", e);
+        }
     }
 }

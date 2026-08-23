@@ -405,10 +405,15 @@ public class MainActivity extends BasePermissionAppCompatActivity {
         if (isStoragePermissionGranted() && storageAccessDenied != null && storageAccessDenied.isShown()) {
             storageAccessDenied.dismiss();
         }
-        Bundle bundle = new Bundle();
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, "MainActivity");
-        bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity");
-        mAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
+        if (mAnalytics != null) {
+            try {
+                Bundle bundle = new Bundle();
+                bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, "MainActivity");
+                bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity");
+                mAnalytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle);
+            } catch (Exception ignored) {
+            }
+        }
     }
 
     private void allFilesAccessCheck() {

@@ -115,7 +115,11 @@ public abstract class BaseAppCompatActivity extends AppCompatActivity {
         lottieDialog = new LoadingDialog(this);
         lC.a(getApplicationContext(), false);
         progressDialog = new ProgressDialog(this);
-        mAnalytics = FirebaseAnalytics.getInstance(this);
+        try {
+            mAnalytics = FirebaseAnalytics.getInstance(this);
+        } catch (Exception e) {
+            mAnalytics = null;
+        }
     }
 
     @Override

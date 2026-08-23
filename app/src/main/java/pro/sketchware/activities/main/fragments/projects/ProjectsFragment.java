@@ -142,8 +142,10 @@ public class ProjectsFragment extends DA {
         preference = new DB(requireContext(), "project");
 
         ExtendedFloatingActionButton fab = requireActivity().findViewById(R.id.create_new_project);
-        fab.setOnClickListener((v) -> toProjectSettingsActivity());
-        Insetter.builder().margin(WindowInsetsCompat.Type.navigationBars()).applyToView(fab);
+        if (fab != null) {
+            fab.setOnClickListener((v) -> toProjectSettingsActivity());
+            Insetter.builder().margin(WindowInsetsCompat.Type.navigationBars()).applyToView(fab);
+        }
 
         binding.swipeRefresh.setOnRefreshListener(this::refreshProjectsList);
 
@@ -158,10 +160,12 @@ public class ProjectsFragment extends DA {
         UI.addSystemWindowInsetToPadding(binding.myprojects, true, false, true, true);
 
         binding.nestedScroll.setOnScrollChangeListener((NestedScrollView.OnScrollChangeListener) (v, scrollX, scrollY, oldScrollX, oldScrollY) -> {
-            if (scrollY > oldScrollY) {
-                fab.shrink();
-            } else if (scrollY < oldScrollY) {
-                fab.extend();
+            if (fab != null) {
+                if (scrollY > oldScrollY) {
+                    fab.shrink();
+                } else if (scrollY < oldScrollY) {
+                    fab.extend();
+                }
             }
         });
 
@@ -221,20 +225,40 @@ public class ProjectsFragment extends DA {
         }
 
         executorService.execute(() -> {
-            List<HashMap<String, Object>> loadedProjects = lC.a();
-            loadedProjects.sort(new ProjectComparator(preference.d("sortBy"),preference.a("pinnedProject", "-1")));
+            List<HashMap<String, Object>> loadedProjects;
+            try {
+                loadedProjects = lC.a();
+                if (loadedProjects == null) {
+                    loadedProjects = new ArrayList<>();
+                }
+                loadedProjects.sort(new ProjectComparator(preference.d("sortBy"), preference.a("pinnedProject", "-1")));
+            } catch (Exception e) {
+                loadedProjects = new ArrayList<>();
+            }
 
-            DiffUtil.DiffResult diffResult = DiffUtil.calculateDiff(new ProjectDiffCallback(projectsList, loadedProjects));
+            final List<HashMap<String, Object>> finalProjects = loadedProjects;
+            DiffUtil.DiffResult diffResult = null;
+            try {
+                diffResult = DiffUtil.calculateDiff(new ProjectDiffCallback(projectsList, finalProjects));
+            } catch (Exception ignored) {
+            }
 
+            final DiffUtil.DiffResult finalDiffResult = diffResult;
+            if (getActivity() == null) return;
             requireActivity().runOnUiThread(() -> {
+                if (binding == null) return;
                 if (binding.swipeRefresh.isRefreshing()) binding.swipeRefresh.setRefreshing(false);
                 if (binding.loadingContainer.getVisibility() == View.VISIBLE) {
                     binding.loadingContainer.setVisibility(View.GONE);
                     binding.myprojects.setVisibility(View.VISIBLE);
                 }
                 projectsList.clear();
-                projectsList.addAll(loadedProjects);
-                diffResult.dispatchUpdatesTo(projectsAdapter);
+                projectsList.addAll(finalProjects);
+                if (finalDiffResult != null) {
+                    finalDiffResult.dispatchUpdatesTo(projectsAdapter);
+                } else {
+                    projectsAdapter.notifyDataSetChanged();
+                }
                 if (projectsSearchView != null)
                     projectsAdapter.filterData(projectsSearchView.getQuery().toString());
             });

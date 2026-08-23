@@ -44,10 +44,25 @@ public class qA extends Fragment {
     }
 
     @Override
+    public void onAttach(@androidx.annotation.NonNull Context context) {
+        super.onAttach(context);
+        if (context instanceof Activity) {
+            a = (Activity) context;
+        }
+        b = context.getApplicationContext();
+    }
+
+    @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        a = getActivity();
-        b = a.getApplicationContext();
+        if (a == null) {
+            a = getActivity();
+        }
+        if (b == null && a != null) {
+            b = a.getApplicationContext();
+        } else if (b == null && getContext() != null) {
+            b = getContext().getApplicationContext();
+        }
         setEnterTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));
         setReturnTransition(new MaterialSharedAxis(MaterialSharedAxis.X, false));
         setExitTransition(new MaterialSharedAxis(MaterialSharedAxis.X, true));

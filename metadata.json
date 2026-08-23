@@ -1,0 +1,6 @@
+{
+  "name": "Sketchware Pro",
+  "description": "Sketchware Pro - Create Android apps on your smartphone using visual block programming.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
